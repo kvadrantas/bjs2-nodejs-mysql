@@ -35,11 +35,11 @@ async function connectMysql (sqlServer) {
     });
 }
 
-async function queryMysql (connection, sql, values) {
+async function queryMysql (connection, sql, values) {   // sql = query; values = values for query. This technic is used to awoid sql injection atacks when user inputs sql commands
     return new Promise ((resolve, reject) => {
-            connection.query({sql, values}, function (error, results, fields) {
+            connection.query({sql, values}, (error, results, fields) => {
                 error ? reject(error) : resolve({results, fields});
-            });
+            }); //results = table rows; fields = table field/column properties
     });
 }
 // *****************************************************************************
@@ -61,6 +61,22 @@ const sqlSrv2 = {
 };
 
 let connection2;
+// ****************************** PRINT TABLE **********************************
+function printTable(rows, columns) {
+    let th = '';
+    for (const column of columns) {
+        th += column.name + '\t';
+    };
+    console.log(th);
+
+    for (const row of rows) {
+        let tr = '';
+        for (const column of columns) {
+            tr += row[column.name] + '\t';
+        }
+        console.log(tr);
+    }
+}
 // *****************************************************************************
 
 
@@ -68,13 +84,14 @@ let connection2;
 connection1 = await connectMysql(sqlSrv1);
 const a = await queryMysql(connection1, 'select * from zmones;');
 console.log(a.results); 
+printTable(a.results, a.fields);
 
 console.log('----------------------');
 
 // Connecting to server2 and quering server2
-connection2 = await connectMysql(sqlSrv2);
-const b = await queryMysql(connection2, 'select * from adresai;');
-console.log(b.results);
+// connection2 = await connectMysql(sqlSrv2);
+// const b = await queryMysql(connection2, 'select * from adresai;');
+// console.log(b.results);
 
 
 console.log('\nPIRMAS \n');
@@ -84,4 +101,4 @@ console.log('\nPIRMAS \n');
 
 
 connection1.end();
-connection2.end();
+// connection2.end();
