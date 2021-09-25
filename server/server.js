@@ -61,6 +61,22 @@ async function queryMysql (connection, sql, values) {   // sql = query; values =
     });
 }
 // *****************************************************************************
+// *************************** READ FROM KEYBOARD ******************************
+import * as readline from "readline";
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+function input(msg) {
+  return new Promise((resolve) => {
+    rl.question(msg, (txt) => {
+      resolve(txt);
+    });
+  });
+}
+// *****************************************************************************
 // ****************************** PRINT TABLE **********************************
 function printTable(rows, columns) {
     let th = '';
@@ -78,9 +94,9 @@ function printTable(rows, columns) {
     }
 }
 // ***************************** ACTION SWITCH *********************************
-
-let choice = 2;
+let choice;
 let zmones_id;
+let id;
 let data;
 
 connection1 = await connectMysql(sqlSrv1);
@@ -91,11 +107,14 @@ while (choice !== 0) {
     console.log('3. istrinti zmogu');
     console.log('4. visi zmogaus adresai');
     console.log('5. naujas zmogaus adresas');
-    console.log('6. istrinti zmogaus adresa');
+    console.log('6. istrinti zmogaus adresai');
     console.log('7. visi zmogaus kontaktai');
     console.log('8. naujas zmogaus kontaktas');
     console.log('9. istrinti zmogaus kontakta');
     console.log('0. baigti\n');
+
+    choice = await input('Ivesk pasirinkima: ');
+    choice = parseInt(choice);
 
     switch (choice) {
         case 1:
@@ -103,59 +122,70 @@ while (choice !== 0) {
             printTable(data.results, data.fields);
             break;
         case 2:
-            let vardas = 'rolandas';
-            let pavarde = 'rolandenis';
-            let gim_data = '1982-01-16';
-            let alga = '2300';
+            let vardas = await input('Ivesk varda: ');
+            let pavarde = await input('Ivesk pavarde: ');
+            let gim_data = await input('Ivesk gimimo data: ');
+            let alga = await input('Ivesk alga: ');
             queryMysql(connection1, 
                 'insert into zmones (vardas, pavarde, gim_data, alga) values(?, ?, ?, ?)',
                 [vardas, pavarde, gim_data, alga]);
-                choice = 0;
             break;
         case 3:
-            
+            id = await input('Ivesk zmogaus ID: ');
+            id = parseInt(id);
+            queryMysql(connection1, 'delete from zmones where id = ?', [id]);
             break;
         case 4:
-            data = await queryMysql(connection1, 'select * from adresai where zmones_id = ?', [1]);
+            id = await input('Ivesk zmogaus ID: ');
+            id = parseInt(id);
+            data = await queryMysql(connection1, 'select * from adresai where zmones_id = ?', [id]);
             printTable(data.results, data.fields);
             break;
         case 5:
-            zmones_id = 7;
-            let adresas = 'Vivulskio';
-            let miestas = 'Pakruojis';
-            let valstybe = 'LT';
-            let pasto_kodas = 'LT-00222';
+            zmones_id = await input('Ivesk zmogaus ID: ');
+            zmones_id = parseInt(zmones_id);
+            let adresas = await input('Ivesk adresa: ');
+            let miestas = await input('Ivesk miesta: ');
+            let valstybe = await input('Ivesk valstybes koda: ');
+            let pasto_kodas = await input('Ivesk pasto koda pvz. (LT-00222): ');
             queryMysql(connection1, 
                 'insert into adresai (zmones_id, adresas, miestas, valstybe, pasto_kodas) values (?, ?, ?, ?, ?)',
                 [zmones_id, adresas, miestas, valstybe, pasto_kodas]);
             break;
         case 6:
-        
+            id = await input('Ivesk adreso ID: ');
+            id = parseInt(id);
+            queryMysql(connection1, 'delete from adresai where id = ?', [id]);
             break;
         case 7:
-            data = await queryMysql(connection1, 'select * from kontaktai where zmones_id = ?', [1]);
+            id = await input('Ivesk kontakto ID: ');
+            id = parseInt(id);
+            data = await queryMysql(connection1, 'select * from kontaktai where zmones_id = ?', [id]);
             printTable(data.results, data.fields);
             break;
         case 8:
-            zmones_id = 7;
-            let tipas = 'mob';
-            let reiksme = '111111111';
+            zmones_id = await input('Ivesk zmogaus ID: ');
+            zmones_id = parseInt(zmones_id);
+            let tipas = await input('Ivesk kontakto tipa pvz. (mob/email): ');
+            let reiksme = await input('Ivesk kontakta: ');
             queryMysql(connection1, 
                 'insert into kontaktai (zmones_id, tipas, reiksme) values(?, ?, ?)',
                 [zmones_id, tipas, reiksme]);
             break;
         case 9:
-        
+            id = await input('Ivesk kontakto ID: ');
+            id = parseInt(id);
+            queryMysql(connection1, 'delete from kontaktai where id = ?', [id]);
             break;
         case 0:
-        
+            
             break;
 
         default:
             console.log('Nera tokio varianto pasirinkime!\n');
             break;
     }
-    choice = 0;
+    console.log(`\n\n ---------------------------------- \n\n`);
 }
 
 // Connecting to server1 and quering server1
